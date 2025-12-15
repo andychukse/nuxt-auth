@@ -1,6 +1,6 @@
 {
   "name": "@andychukse/nuxt-auth",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "A Simple Nuxt authentication module with JWT and social login support for Nuxt Apps with separate backend",
   "keywords": [
     "nuxt",
