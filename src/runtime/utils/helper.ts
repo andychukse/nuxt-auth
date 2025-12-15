@@ -98,3 +98,13 @@ export function extractByPointer(obj: any, pointer: string): any {
 
   return current
 }
+
+export function isValidDomainUrl(domain: string): boolean {
+  try {
+    const _url = new URL(domain)
+    return true
+  }
+  catch {
+    return false
+  }
+}

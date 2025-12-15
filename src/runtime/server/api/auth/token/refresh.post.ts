@@ -1,7 +1,7 @@
 import { createError, getCookie, setCookie, defineEventHandler } from 'h3'
 import { useRuntimeConfig } from '#imports'
 import type { ModuleOptions, HttpMethod } from '../../../../../types'
-import { extractByPointer } from '../../../../utils/helper'
+import { extractByPointer, isValidDomainUrl } from '../../../../utils/helper'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
@@ -50,9 +50,14 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    const baseCookieOptions = {
+      path: '/',
+      domain: isValidDomainUrl(authConfig.token.cookieDomain) ? authConfig.token.cookieDomain : undefined,
+    }
+
     // Set new cookies with explicit path
     setCookie(event, authConfig.token.cookieName, newAccessToken, {
-      domain: authConfig.token.cookieDomain,
+      ...baseCookieOptions,
       maxAge: authConfig.token.maxAgeInSeconds,
       sameSite: authConfig.token.sameSiteAttribute,
       secure: authConfig.token.secureCookieAttribute,
@@ -61,7 +66,7 @@ export default defineEventHandler(async (event) => {
 
     if (newRefreshToken) {
       setCookie(event, authConfig.token.refresh.cookieName, newRefreshToken, {
-        domain: authConfig.token.cookieDomain,
+        ...baseCookieOptions,
         maxAge: authConfig.token.refresh.maxAgeInSeconds,
         sameSite: authConfig.token.refresh.sameSiteAttribute,
         secure: authConfig.token.refresh.secureCookieAttribute,

@@ -1,6 +1,7 @@
 import { defineEventHandler, readBody, setCookie, createError } from 'h3'
 import { useRuntimeConfig } from '#imports'
 import type { ModuleOptions } from '../../../../../types'
+import { isValidDomainUrl } from '../../../../utils/helper'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
@@ -25,9 +26,14 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  const baseCookieOptions = {
+    path: '/',
+    domain: isValidDomainUrl(authConfig.token.cookieDomain) ? authConfig.token.cookieDomain : undefined,
+  }
+
   // Set access token cookie
   setCookie(event, authConfig.token.cookieName, accessToken, {
-    domain: authConfig.token.cookieDomain,
+    ...baseCookieOptions,
     maxAge: authConfig.token.maxAgeInSeconds,
     sameSite: authConfig.token.sameSiteAttribute,
     secure: authConfig.token.secureCookieAttribute,
@@ -37,7 +43,7 @@ export default defineEventHandler(async (event) => {
   // Set refresh token cookie
   if (refreshToken) {
     setCookie(event, authConfig.token.refresh.cookieName, refreshToken, {
-      domain: authConfig.token.cookieDomain,
+      ...baseCookieOptions,
       maxAge: authConfig.token.refresh.maxAgeInSeconds,
       sameSite: authConfig.token.refresh.sameSiteAttribute,
       secure: authConfig.token.refresh.secureCookieAttribute,

@@ -1,5 +1,5 @@
 import type { ModuleOptions, SessionData, SessionStatus } from '../../types'
-import { authResponseError, extractByPointer } from '../utils/helper'
+import { authResponseError, extractByPointer, isValidDomainUrl } from '../utils/helper'
 import { useRuntimeConfig, useState, computed, useCookie, navigateTo, ref, useRequestFetch, useRequestEvent } from '#imports'
 import { setCookie, getCookie } from 'h3'
 
@@ -48,7 +48,6 @@ export function useAuth() {
       const tokens = await $fetch('/api/auth/token/get-token', {
         method: 'POST',
       })
-      console.log('Access token fetched:', tokens)
       return tokens
     }
     catch (error) {
@@ -103,10 +102,15 @@ export function useAuth() {
       // Server-side: set httpOnly cookie directly
       const event = useRequestEvent()
       if (event) {
+        const baseCookieOptions = {
+          path: '/',
+          domain: isValidDomainUrl(config.token.cookieDomain) ? config.token.cookieDomain : undefined,
+        }
+
         if (accessToken) {
           // Set access token as regular cookie
           setCookie(event, config?.token?.cookieName, accessToken, {
-            domain: config?.token?.cookieDomain,
+            ...baseCookieOptions,
             maxAge: config?.token?.maxAgeInSeconds,
             sameSite: config?.token?.sameSiteAttribute,
             secure: config?.token?.secureCookieAttribute,
@@ -116,7 +120,7 @@ export function useAuth() {
         if (newRefreshToken) {
           // Set access token as regular cookie
           setCookie(event, config?.token?.refresh?.cookieName, newRefreshToken, {
-            domain: config?.token?.cookieDomain,
+            ...baseCookieOptions,
             maxAge: config?.token?.refresh?.maxAgeInSeconds,
             sameSite: config?.token?.refresh?.sameSiteAttribute,
             secure: config?.token?.refresh?.secureCookieAttribute,
@@ -145,7 +149,7 @@ export function useAuth() {
 
   const clearAuthToken = async () => {
     try {
-      await useRequestFetch()('/api/auth/token/clear-token', {
+      await $fetch('/api/auth/token/clear-token', {
         method: 'POST',
       })
     }
@@ -311,6 +315,10 @@ export function useAuth() {
   const signInWithSocial = async (provider: string, params: any, { callbackUrl }: { callbackUrl?: string } = {}) => {
     const url = config.endpoints?.[provider]?.path
 
+    if (!url) {
+      throw new Error(`Social provider ${provider} is not configured`)
+    }
+
     const response: any = await fetchApi(
       url,
       {
@@ -455,6 +463,7 @@ export function useAuth() {
       // Call the server-side refresh handler instead of calling backend directly
       const response: any = await useRequestFetch()('/api/auth/token/refresh', {
         method: 'POST',
+        credentials: 'include',
       })
 
       if (response && response.access_token) {
