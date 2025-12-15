@@ -1,6 +1,6 @@
 {
   "name": "@andychukse/nuxt-auth",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "A Simple Nuxt authentication module with JWT and social login support for Nuxt Apps with separate backend",
   "keywords": [
     "nuxt",
@@ -37,7 +37,7 @@
     "dev": "npm run dev:prepare && nuxi dev playground",
     "dev:build": "nuxi build playground",
     "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxi prepare playground",
-    "release": "npm run lint && npm run test && npm run prepack && changelogen --release && npm publish && git push --follow-tags",
+    "release": "npm run lint && npm run test && npm run prepack && changelogen --release && git push --follow-tags && npm publish",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
